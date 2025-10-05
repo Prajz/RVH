@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useJSAnalysis } from "@/lib/useJSAnalysis";
 
 // Reuse a single MediaElementSourceNode per HTMLMediaElement across mounts
 const audioGraphMap = new WeakMap<
@@ -15,7 +16,7 @@ export default function Visualizer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [src, setSrc] = useState<string>(
-    "https://raw.githubusercontent.com/aasi-archive/rv-audio/main/data/M1/H001.mp3"
+    "https://raw.githubusercontent.com/aasi-archive/rv-audio/main/data/1/1.mp3"
   );
 
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -30,23 +31,35 @@ export default function Visualizer() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Ensure CORS for WebAudio graph from cross-origin sources
+    try {
+      audio.crossOrigin = "anonymous";
+    } catch {}
+
     // Build or reuse graph
     let graph = audioGraphMap.get(audio);
     if (!graph) {
       const AudioCtx =
         (window as any).AudioContext || (window as any).webkitAudioContext;
-      const ctx: AudioContext = new AudioCtx();
-      const source = ctx.createMediaElementSource(audio);
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 256;
-      source.connect(analyser);
-      analyser.connect(ctx.destination);
-      graph = { ctx, source, analyser };
-      audioGraphMap.set(audio, graph);
+      try {
+        const ctx: AudioContext = new AudioCtx();
+        const source = ctx.createMediaElementSource(audio);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+        analyser.connect(ctx.destination);
+        graph = { ctx, source, analyser };
+        audioGraphMap.set(audio, graph);
+      } catch {
+        // Likely CORS/security issue; allow audio to play directly without visualization
+        graph = undefined as any;
+      }
     }
 
-    audioContextRef.current = graph.ctx;
-    analyserRef.current = graph.analyser;
+    if (graph) {
+      audioContextRef.current = graph.ctx;
+      analyserRef.current = graph.analyser;
+    }
 
     // Resume context on user interaction
     const maybeResume = async () => {
@@ -62,7 +75,8 @@ export default function Visualizer() {
     onPlayResumeRef.current = maybeResume;
     audio.addEventListener("play", maybeResume, { passive: true });
 
-    const analyser = analyserRef.current!;
+    const analyser = analyserRef.current;
+    if (!analyser) return; // visualization disabled, but audio can still play
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
@@ -88,6 +102,11 @@ export default function Visualizer() {
     };
   }, []);
 
+  const analysis = useJSAnalysis(
+    analyserRef.current,
+    audioContextRef.current?.sampleRate ?? 44100
+  );
+
   useEffect(() => {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -101,7 +120,7 @@ export default function Visualizer() {
     <div>
       <h1>Mantra Visualizer</h1>
       <div style={{ display: "grid", gap: 12 }}>
-        <audio ref={audioRef} controls src={src} />
+        <audio ref={audioRef} controls src={src} crossOrigin="anonymous" />
         <canvas
           ref={canvasRef}
           width={900}
@@ -129,6 +148,32 @@ export default function Visualizer() {
             onChange={(e) => setSrc(e.target.value)}
           />
         </label>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2,minmax(0,1fr))",
+            gap: 8,
+          }}
+        >
+          <div className="pill">
+            Pitch f0: {analysis.f0Hz ? `${analysis.f0Hz.toFixed(1)} Hz` : "—"}
+          </div>
+          <div className="pill">
+            Centroid:{" "}
+            {analysis.centroidHz
+              ? `${Math.round(analysis.centroidHz)} Hz`
+              : "—"}
+          </div>
+          <div className="pill">Onset: {analysis.onset ? "yes" : "no"}</div>
+          <div className="pill">
+            Timbre rolloff:{" "}
+            {analysis.rolloffHz ? `${Math.round(analysis.rolloffHz)} Hz` : "—"}
+          </div>
+          <div className="pill">
+            Timbre flatness:{" "}
+            {analysis.flatness !== null ? analysis.flatness.toFixed(3) : "—"}
+          </div>
+        </div>
       </div>
     </div>
   );
