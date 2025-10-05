@@ -1,6 +1,16 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
+// Reuse a single MediaElementSourceNode per HTMLMediaElement across mounts
+const audioGraphMap = new WeakMap<
+  HTMLMediaElement,
+  {
+    ctx: AudioContext;
+    source: MediaElementAudioSourceNode;
+    analyser: AnalyserNode;
+  }
+>();
+
 export default function Visualizer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -8,19 +18,51 @@ export default function Visualizer() {
     "https://raw.githubusercontent.com/aasi-archive/rv-audio/main/data/M1/H001.mp3"
   );
 
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const onPlayResumeRef = useRef<(() => void) | null>(null);
+
   useEffect(() => {
     const audio = audioRef.current;
     const canvas = canvasRef.current;
     if (!audio || !canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-    const ac = new AudioCtx();
-    const srcNode = ac.createMediaElementSource(audio);
-    const analyser = ac.createAnalyser();
-    analyser.fftSize = 256;
-    srcNode.connect(analyser);
-    analyser.connect(ac.destination);
+
+    // Build or reuse graph
+    let graph = audioGraphMap.get(audio);
+    if (!graph) {
+      const AudioCtx =
+        (window as any).AudioContext || (window as any).webkitAudioContext;
+      const ctx: AudioContext = new AudioCtx();
+      const source = ctx.createMediaElementSource(audio);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+      graph = { ctx, source, analyser };
+      audioGraphMap.set(audio, graph);
+    }
+
+    audioContextRef.current = graph.ctx;
+    analyserRef.current = graph.analyser;
+
+    // Resume context on user interaction
+    const maybeResume = async () => {
+      try {
+        if (
+          audioContextRef.current &&
+          audioContextRef.current.state === "suspended"
+        ) {
+          await audioContextRef.current.resume();
+        }
+      } catch {}
+    };
+    onPlayResumeRef.current = maybeResume;
+    audio.addEventListener("play", maybeResume, { passive: true });
+
+    const analyser = analyserRef.current!;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
@@ -36,13 +78,24 @@ export default function Visualizer() {
         ctx.fillStyle = `hsl(${30 + i / 2} 60% 60%)`;
         ctx.fillRect(x, height - barHeight, barWidth - 1, barHeight);
       }
-      requestAnimationFrame(draw);
+      rafRef.current = requestAnimationFrame(draw);
     };
     draw();
+
     return () => {
-      ac.close().catch(() => {});
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      audio.removeEventListener("play", maybeResume as any);
     };
-  }, [src]);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      // Keep AudioContext/graph alive in WeakMap; they'll be GC'ed with the element
+      analyserRef.current = null;
+      audioContextRef.current = null;
+    };
+  }, []);
 
   return (
     <div>
