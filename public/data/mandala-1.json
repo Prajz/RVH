@@ -2,19 +2,34 @@
   "mandala": 1,
   "hymns": [
     {
-      "mandala": 1,
       "hymn": 1,
-      "deities": ["Agni"],
-      "meter": "Gayatri",
-      "audio": "https://raw.githubusercontent.com/aasi-archive/rv-audio/main/data/M1/H001.mp3",
-      "verses": [
-        {
-          "v": 1,
-          "sa": "अग्निमीळे पुरोहितं...",
-          "en": "I laud Agni, the chosen Priest..."
-        },
-        { "v": 2, "sa": "...", "en": "..." }
-      ]
+      "sanskrit": "अग्निमीळे पुरोहितं यज्ञस्य देवमृत्विजम् । होतारं रत्नधातमम् ॥",
+      "transliteration": "agnim īḷe purohitaṃ yajñasya devam ṛtvijam | hotāraṃ ratnadhātamam ||",
+      "translation": "I praise Agni, the chosen Priest, God, minister of sacrifice, the hotar, lavishest of wealth."
+    },
+    {
+      "hymn": 2,
+      "sanskrit": "अग्निः पूर्वेभिरृषिभिरीड्यो नूतनैरुत । स देवानेह वक्षति ॥",
+      "transliteration": "agniḥ pūrvebhir ṛṣibhir īḍyo nūtanair uta | sa devāneh vakṣati ||",
+      "translation": "Agni is worthy to be praised by living as by ancient seers. He shall bring hitherward the Gods."
+    },
+    {
+      "hymn": 3,
+      "sanskrit": "अग्निना रयिमश्नवत् पोषमेव दिवेदिवे । यशसं वीरवत्तमम् ॥",
+      "transliteration": "agninā rayim aśnavat poṣameva dive-dive | yaśasaṃ vīravattamam ||",
+      "translation": "Through Agni man obtaineth wealth, prosperity day by day, splendid and abounding in heroic sons."
+    },
+    {
+      "hymn": 4,
+      "sanskrit": "अग्ने यं यज्ञमध्वरं विश्वतः परिभूरसि । स इद्देवेषु गच्छति ॥",
+      "transliteration": "agne yaṃ yajñam adhvaraṃ viśvataḥ paribhūr asi | sa id deveṣu gacchati ||",
+      "translation": "Agni, the perfect sacrifice which thou encompassest about verily goeth to the Gods."
+    },
+    {
+      "hymn": 5,
+      "sanskrit": "अग्निर्होता कविक्रतुः सत्यश्चित्रश्रवस्तमः । देवो देवेभिरा गमत् ॥",
+      "transliteration": "agnir hotā kavikratuḥ satyaś citraśravastamaḥ | devo devebhir ā gamat ||",
+      "translation": "May Agni, sapient-minded Priest, truthful, most gloriously great, come with the Gods and sit on grass."
     }
   ]
 }
