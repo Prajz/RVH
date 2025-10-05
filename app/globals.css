@@ -1,0 +1,85 @@
+:root {
+  --bg: #1f1a16;
+  --panel: #2a231e;
+  --panel-2: #372f29;
+  --text: #e9e3dc;
+  --muted: #b9aaa1;
+  --accent: #a86e3e;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
+    Cantarell, Noto Sans, sans-serif;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+}
+::selection {
+  background: color-mix(in oklab, var(--accent) 30%, transparent);
+  color: var(--text);
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-2) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--panel-2);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Layout helpers */
+.app {
+  display: flex;
+  min-height: 100dvh;
+}
+.content {
+  flex: 1;
+  min-width: 0;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.muted {
+  color: var(--muted);
+}
+.pill {
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: var(--panel);
+  color: var(--text);
+}

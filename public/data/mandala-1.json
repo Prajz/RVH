@@ -1,0 +1,20 @@
+{
+  "mandala": 1,
+  "hymns": [
+    {
+      "mandala": 1,
+      "hymn": 1,
+      "deities": ["Agni"],
+      "meter": "Gayatri",
+      "audio": "https://raw.githubusercontent.com/aasi-archive/rv-audio/main/data/M1/H001.mp3",
+      "verses": [
+        {
+          "v": 1,
+          "sa": "अग्निमीळे पुरोहितं...",
+          "en": "I laud Agni, the chosen Priest..."
+        },
+        { "v": 2, "sa": "...", "en": "..." }
+      ]
+    }
+  ]
+}
